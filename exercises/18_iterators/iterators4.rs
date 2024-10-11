@@ -10,6 +10,9 @@ fn factorial(num: u64) -> u64 {
     // - additional variables
     // For an extra challenge, don't use:
     // - recursion
+
+    // I have no idea what I'm doing, the unwrap stays on
+    (1..=num).map(|x| x.checked_mul(1).unwrap()).product()
 }
 
 fn main() {
