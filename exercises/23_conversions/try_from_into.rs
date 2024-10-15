@@ -7,6 +7,8 @@
 #![allow(clippy::useless_vec)]
 use std::convert::{TryFrom, TryInto};
 
+use num::ToPrimitive;
+
 #[derive(Debug, PartialEq)]
 struct Color {
     red: u8,
@@ -28,22 +30,64 @@ enum IntoColorError {
 impl TryFrom<(i16, i16, i16)> for Color {
     type Error = IntoColorError;
 
-    fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {}
+    fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {
+        let rgb_range = 0..=255;
+
+        if !rgb_range.contains(&tuple.0) | !rgb_range.contains(&tuple.1) | !rgb_range.contains(&tuple.2) {
+            return Err(IntoColorError::IntConversion);
+        }
+        
+        let r = match tuple.0.abs().to_u8() {
+            Some(x) => x,
+            None => return Err(IntoColorError::IntConversion)
+        };
+        
+        let g = match tuple.1.abs().to_u8() {
+            Some(x) => x,
+            None => return Err(IntoColorError::IntConversion)
+        };
+        
+        let b = match tuple.2.abs().to_u8() {
+            Some(x) => x,
+            None => return Err(IntoColorError::IntConversion)
+        };
+
+        Ok(Self { red: r, green: g, blue: b })
+    } 
 }
 
 // TODO: Array implementation.
-impl TryFrom<[i16; 3]> for Color {
+impl TryFrom<[i16; 3]> for Color { 
     type Error = IntoColorError;
 
-    fn try_from(arr: [i16; 3]) -> Result<Self, Self::Error> {}
-}
+    fn try_from(arr: [i16; 3]) -> Result<Self, Self::Error> {
+        let mut arr_iter = arr.iter();
 
-// TODO: Slice implementation.
+        if arr_iter.any(|&x| !(0..=255).contains(&x)) {
+            return Err(IntoColorError::IntConversion)
+        }
+
+        Color::try_from((arr[0], arr[1], arr[2]))
+    }
+}
+// TODO: Slic`e implementation.
 // This implementation needs to check the slice length.
 impl TryFrom<&[i16]> for Color {
     type Error = IntoColorError;
 
-    fn try_from(slice: &[i16]) -> Result<Self, Self::Error> {}
+    fn try_from(slice: &[i16]) -> Result<Self, Self::Error> {
+        if slice.len() != 3 {
+            return Err(IntoColorError::BadLen);
+        }
+
+        let mut iter_slice = slice.iter();
+
+        if iter_slice.any(|&x| !(0..=255).contains(&x)) {
+            return Err(IntoColorError::IntConversion)
+        }
+
+        Color::try_from((slice[0], slice[1], slice[2]))
+    }
 }
 
 fn main() {
